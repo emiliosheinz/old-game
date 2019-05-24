@@ -4,6 +4,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <mqueue.h>
+#include <time.h>
 
 const char *NOME_FILA = "/fila_jogadas";
 
@@ -15,7 +16,11 @@ typedef struct Message
 } StructMessage;
 
 ssize_t get_msg_buffer_size(mqd_t queue);
-void print_msg(StructMessage *message);
+void insereJogada(StructMessage *message);
+void exibeTabuleiro();
+
+int turno = 1;
+int tabuleiro[3][3];
 
 int main()
 {
@@ -24,7 +29,7 @@ int main()
     ssize_t tam_buffer;
     ssize_t nbytes;
 
-    queue = mq_open(NOME_FILA, O_RDONLY);
+    queue = mq_open(NOME_FILA, O_RDONLY | O_CREAT);
 
     if (queue == (mqd_t)-1)
     {
@@ -44,7 +49,7 @@ int main()
             exit(4);
         }
 
-        print_msg((StructMessage *)buffer);
+        insereJogada((StructMessage *)buffer);
         sleep(5);
     }
 
@@ -52,9 +57,21 @@ int main()
     exit(0);
 }
 
-void print_msg(StructMessage *message)
+void insereJogada(StructMessage *message)
 {
-    printf("id=%d, coluna= %d, linha= %d\n", message->id, message->column, message->row);
+    int row = message->row;
+    int column = message-> column;
+
+    if(tabuleiro[row][column] == 0) {
+        if(turno % 2 == 0) {
+            tabuleiro[row][column] = 1;
+        }else {
+            tabuleiro[row][column] = -1;
+        }
+        exibeTabuleiro();       
+    } else {
+        printf("Jogada anulada pois lugar ja estava ocupado!");
+    }
 }
 
 ssize_t get_msg_buffer_size(mqd_t queue)
@@ -68,4 +85,69 @@ ssize_t get_msg_buffer_size(mqd_t queue)
 
     perror("aloca_msg_buffer");
     exit(3);
+}
+
+int checaLinha()
+{
+    int soma;
+ 
+    for(int linha = 0 ; linha < 3 ; linha++)
+    {
+        soma=0;
+ 
+        for(int coluna = 0 ; coluna < 3 ; coluna++)
+            soma += tabuleiro[linha][coluna];
+ 
+        if(soma == 3 || soma == -3)
+            return 1;
+    }
+ 
+    return 0;
+}
+
+int checaColuna()
+{
+    int soma;
+ 
+    for(int coluna = 0 ; coluna < 3 ; coluna++)
+    {
+        soma=0;
+ 
+        for(int linha = 0 ; linha < 3 ; linha++)
+            soma += tabuleiro[linha][coluna];
+ 
+        if(soma == 3 || soma == -3)
+            return 1;
+    }
+ 
+    return 0;
+}
+
+int checaDiagonal(){
+
+}
+ 
+
+void exibeTabuleiro()
+{
+    printf("\n");
+ 
+    for(int linha = 0 ; linha < 3 ; linha++)
+    {
+        for(int coluna = 0 ; coluna < 3; coluna++)
+        {
+            if(tabuleiro[linha][coluna] == 0)
+                printf("    ");
+            else
+                if(tabuleiro[linha][coluna] == 1)
+                    printf("  X ");
+                else
+                    printf("  O ");
+ 
+            if(coluna != (3-1))
+                printf("|");
+        }
+        printf("\n");
+    }
+    printf("\n");
 }

@@ -4,8 +4,8 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <string.h>
-
-const char* NOME_FILA = "/fila_jogadas";
+#include <semaphore.h>
+#include <unistd.h>
 
 typedef struct Message {
   int id;
@@ -13,10 +13,14 @@ typedef struct Message {
   int row;
 } StructMessage;
 
-int  main() {
-  int column = 0;
-  int row = 0;
+const char* NOME_FILA = "/fila_jogadas";
 
+void askColumnAndRow();
+
+int column = 0;
+int row = 0;
+
+int  main() {
   mqd_t queue;
   StructMessage message;
 
@@ -26,14 +30,11 @@ int  main() {
     exit(2);
   }
 
-  printf("Digite a coluna: ");
-  scanf("%d", &column);
-  printf("Digite a linha: ");
-  scanf("%d", &row);
+  askColumnAndRow();
 
-  message.column = column;
-  message.row = row;
-  message.id = 1;
+  message.column = --column;
+  message.row = --row;
+  message.id = getpid();
 
   if(mq_send(queue, (const char *) &message, sizeof(StructMessage), 29) != 0) {
     perror("Erro ao enviar jogada");
@@ -42,4 +43,13 @@ int  main() {
   mq_close(queue);
 
   return 0;
+}
+
+void askColumnAndRow() {
+  printf("Digite a coluna: ");
+  scanf("%d", &column);
+  printf("Digite a linha: ");
+  scanf("%d", &row);
+
+  if(column > 3 || column < 1 || row > 3 || row < 1) askColumnAndRow();
 }
