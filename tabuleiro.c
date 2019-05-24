@@ -124,7 +124,18 @@ int checaColuna()
 }
 
 int checaDiagonal(){
+    int somaDiagonalP = 0;
+    int somaDiagonalS = 0;
 
+    for(int i = 0; i < 3; i++){
+        somaDiagonalP += tabuleiro[i][i];
+        somaDiagonalS += tabuleiro[i][2-i];
+    }
+
+    if(somaDiagonalP == 3 || somaDiagonalP == -3) return 1;
+    if(somaDiagonalS == 3 || somaDiagonalS == -3) return 1;
+    return 0;
+    
 }
  
 
