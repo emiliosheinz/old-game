@@ -16,15 +16,16 @@ typedef struct Message {
 const char* NOME_FILA = "/fila_jogadas";
 
 void askColumnAndRow();
+void doThePlay();
 
 int column = 0;
 int row = 0;
+StructMessage message;
+mqd_t queue;
 
 int  main() {
-  mqd_t queue;
-  StructMessage message;
 
-  queue = mq_open(NOME_FILA, O_WRONLY | O_CREAT, 0770, NULL);
+  queue = mq_open(NOME_FILA, O_WRONLY, NULL);
   if(queue == (mqd_t) -1) {
     perror("mq_open");
     exit(2);
@@ -32,6 +33,14 @@ int  main() {
 
   askColumnAndRow();
 
+  doThePlay();
+
+  mq_close(queue);
+
+  return 0;
+}
+
+void doThePlay() {
   message.column = --column;
   message.row = --row;
   message.id = getpid();
@@ -40,9 +49,8 @@ int  main() {
     perror("Erro ao enviar jogada");
   }
 
-  mq_close(queue);
-
-  return 0;
+  printf("Jogada enviada para o tabuleiro com sucesso!\n\n");
+  askColumnAndRow();
 }
 
 void askColumnAndRow() {
@@ -52,4 +60,5 @@ void askColumnAndRow() {
   scanf("%d", &row);
 
   if(column > 3 || column < 1 || row > 3 || row < 1) askColumnAndRow();
+  else doThePlay();
 }

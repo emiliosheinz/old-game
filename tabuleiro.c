@@ -5,6 +5,8 @@
 #include <sys/stat.h>
 #include <mqueue.h>
 #include <time.h>
+#include <unistd.h>
+#include <time.h>
 
 const char *NOME_FILA = "/fila_jogadas";
 
@@ -26,15 +28,20 @@ int verificaFimDoJogo();
 
 int turno = 1;
 int tabuleiro[3][3];
+int fd;
 
 int main()
 {
+    printf("PID: %d", getpid());
     mqd_t queue;
     char *buffer = NULL;
     ssize_t tam_buffer;
     ssize_t nbytes;
 
-    queue = mq_open(NOME_FILA, O_RDONLY | O_CREAT);
+    fd = open("log_de_jogadas.txt", O_CREAT | O_RDWR, 0600);
+	if (fd == -1) perror("Falha no open()");
+
+    queue = mq_open(NOME_FILA, O_RDONLY | O_CREAT, 0770, NULL);
 
     if (queue == (mqd_t)-1)
     {
@@ -62,13 +69,26 @@ int main()
     exit(0);
 }
 
+void insereLog(int row, int column, int playerdId, char *status){
+    time_t t = time(NULL);
+    struct tm tm = *localtime(&t);
+
+    char log[29 + strlen(status)];
+
+    snprintf(log, sizeof(log), "%d-%d-%d %d:%d:%d;%d;%d %d;%s\r\n", tm.tm_mday, tm.tm_mon, tm.tm_year, tm.tm_hour, tm.tm_min, tm.tm_sec, playerdId, row + 1, column + 1, status);
+
+    if (write(fd, log, sizeof(log)) != sizeof(log)) perror("escrita buf1");
+}
+
 void insereJogada(StructMessage *message)
 {
     int row = message->row;
     int column = message->column;
+    int playerId = message->id;
 
     if (tabuleiro[row][column] == 0)
     {
+        insereLog(row, column, playerId, "jogada válida");
         if (turno % 2 == 0)
         {
             tabuleiro[row][column] = 1;
