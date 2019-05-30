@@ -41,6 +41,10 @@ int main()
     fd = open("log_de_jogadas.txt", O_CREAT | O_RDWR, 0600);
 	if (fd == -1) perror("Falha no open()");
 
+    lseek(fd, 0, SEEK_END);
+
+    if (write(fd, "\r\n\r\n", 4) != 4) perror("escrita buf1");
+
     queue = mq_open(NOME_FILA, O_RDONLY | O_CREAT, 0770, NULL);
 
     if (queue == (mqd_t)-1)
@@ -62,7 +66,7 @@ int main()
         }
 
         insereJogada((StructMessage *)buffer);
-        sleep(5);
+        sleep(1);
     }
 
     mq_close(queue);
@@ -76,6 +80,8 @@ void insereLog(int row, int column, int playerdId, char *status){
     char log[29 + strlen(status)];
 
     snprintf(log, sizeof(log), "%d-%d-%d %d:%d:%d;%d;%d %d;%s\r\n", tm.tm_mday, tm.tm_mon, tm.tm_year, tm.tm_hour, tm.tm_min, tm.tm_sec, playerdId, row + 1, column + 1, status);
+
+    lseek(fd, 0, SEEK_END);
 
     if (write(fd, log, sizeof(log)) != sizeof(log)) perror("escrita buf1");
 }
