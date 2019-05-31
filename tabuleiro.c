@@ -25,10 +25,13 @@ int checaDiagonal();
 int checaLinha();
 int verificaEmpate();
 int verificaFimDoJogo();
+int addJogador(int playerId);
 
 int turno = 1;
 int tabuleiro[3][3];
 int fd;
+int jogadores[2];
+int ultimoAJogar;
 
 int main()
 {
@@ -64,13 +67,31 @@ int main()
             perror("receive");
             exit(4);
         }
-
+	
         insereJogada((StructMessage *)buffer);
         sleep(1);
     }
 
     mq_close(queue);
     exit(0);
+}
+
+int addJogador(int playerId){
+	if(jogadores[1] == playerId || jogadores[0] == playerId) {
+		return 0;
+	} else if(jogadores[1] != 0 && jogadores[0] != 0){
+		return -1;
+	} else {
+		if(jogadores[0] == 0) {
+			jogadores[0] = playerId;
+			return 0;
+		}
+		if(jogadores[1] == 0) {
+			jogadores[1] = playerId;
+			return 0;
+		}
+		return 0;
+	}
 }
 
 void insereLog(int row, int column, int playerdId, char *status){
@@ -92,16 +113,23 @@ void insereJogada(StructMessage *message)
     int column = message->column;
     int playerId = message->id;
 
-    if (tabuleiro[row][column] == 0)
-    {
+	 if (addJogador(playerId) == -1){
+		perror("Você não pode participar dessa partida!");
+	} else if(ultimoAJogar == playerId) {
+		perror("Jogada Inválida: Não é a sua vez de jogar!");
+	} else if(tabuleiro[row][column] != 0) {
+		perror("Jogada Inválida: Essa posição já está ocupada!");
+	} else {
         insereLog(row, column, playerId, "jogada válida");
         if (turno % 2 == 0)
         {
             tabuleiro[row][column] = 1;
+		    ultimoAJogar = playerId;
         }
         else
         {
             tabuleiro[row][column] = -1;
+		    ultimoAJogar = playerId;
         }
 
         turno++;
@@ -110,10 +138,6 @@ void insereJogada(StructMessage *message)
         if(verificaFimDoJogo() == 1){
             exit(0);
         }
-    }
-    else
-    {
-        perror("Jogada anulada pois lugar ja estava ocupado!\n");
     }
 }
 
