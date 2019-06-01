@@ -7,6 +7,8 @@
 #include <time.h>
 #include <unistd.h>
 #include <time.h>
+#include <signal.h>
+#include <sys/types.h>
 
 const char *NOME_FILA = "/fila_jogadas";
 
@@ -33,9 +35,15 @@ int fd;
 int jogadores[2];
 int ultimoAJogar;
 
+void sig_handler(int signo){
+    
+}
+
 int main()
 {
-    printf("PID: %d", getpid());
+    printf("PID: %d\n", getpid());
+    exibeTabuleiro();
+
     mqd_t queue;
     char *buffer = NULL;
     ssize_t tam_buffer;
@@ -113,12 +121,13 @@ void insereJogada(StructMessage *message)
     int column = message->column;
     int playerId = message->id;
 
-	 if (addJogador(playerId) == -1){
-		perror("Você não pode participar dessa partida!");
+	if (addJogador(playerId) == -1){
+		printf("Você não pode participar dessa partida!\n");
 	} else if(ultimoAJogar == playerId) {
-		perror("Jogada Inválida: Não é a sua vez de jogar!");
+		printf("Jogada Inválida: Não é a sua vez de jogar!\n");
 	} else if(tabuleiro[row][column] != 0) {
-		perror("Jogada Inválida: Essa posição já está ocupada!");
+        insereLog(row, column, playerId, "jogada inválida");
+		printf("Jogada Inválida: Essa posição já está ocupada!\n");
 	} else {
         insereLog(row, column, playerId, "jogada válida");
         if (turno % 2 == 0)
@@ -136,6 +145,7 @@ void insereJogada(StructMessage *message)
         exibeTabuleiro();
 
         if(verificaFimDoJogo() == 1){
+            insereLog(row, column, playerId, "jogada vencedora");
             exit(0);
         }
     }
