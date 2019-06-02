@@ -84,8 +84,9 @@ int main()
 	if (fd == -1) perror("Falha no open()");
 
     lseek(fd, 0, SEEK_END);
-
-    if (write(fd, "\r\n\r\n", 4) != 4) perror("escrita buf1");
+    char firstLog[33];
+    sprintf(firstLog, "Logs do tabuleiro com PID %d:\n\r", getpid());
+    if (write(fd, firstLog, 33) != 33) perror("escrita buf1");
 
     queue = mq_open(NOME_FILA, O_RDONLY | O_CREAT, 0770, NULL);
 
@@ -133,17 +134,15 @@ int addJogador(int playerId){
 	}
 }
 
-void insereLog(int row, int column, int playerId, char *status){
+void insereLog(int row, int column, char *playerName, char *status){
     time_t t = time(NULL);
     struct tm tm = *localtime(&t);
 
-    char log[29 + strlen(status)];
+    char log[25 + strlen(status) + strlen(playerName)];
 
-    snprintf(log, sizeof(log), "%d-%d-%d %d:%d:%d;%d;%d %d;%s\r\n", tm.tm_mday, tm.tm_mon, tm.tm_year, tm.tm_hour, tm.tm_min, tm.tm_sec, playerId, row + 1, column + 1, status);
+    snprintf(log, sizeof(log), "%d-%d-%d %d:%d:%d;%s;%d %d;%s\r\n", tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900, tm.tm_hour, tm.tm_min, tm.tm_sec, playerName, row + 1, column + 1, status);
 
-    lseek(fd, 0, SEEK_END);
-
-    if (write(fd, log, sizeof(log)) != sizeof(log)) perror("escrita buf1");
+    if (write(fd, log, strlen(log)) != strlen(log)) perror("escrita buf1");
 }
 
 void insereJogada(StructMessage *message)
@@ -159,10 +158,10 @@ void insereJogada(StructMessage *message)
 	} else if(ultimoAJogar == playerId) {
 		printf("Jogada Inválida: Não é a sua vez de jogar!\n");
 	} else if(tabuleiro[row][column] != 0) {
-        insereLog(row, column, playerId, "jogada inválida");
+        insereLog(row, column, playerName, "jogada inválida");
 		printf("Jogada Inválida: Essa posição já está ocupada!\n");
 	} else {
-        insereLog(row, column, playerId, "jogada válida");
+        insereLog(row, column, playerName, "jogada válida");
         if (turno % 2 == 0)
         {
             tabuleiro[row][column] = 1;
@@ -178,7 +177,8 @@ void insereJogada(StructMessage *message)
         exibeTabuleiro();
 
         if(verificaFimDoJogo() == 1){
-            insereLog(row, column, playerId, "jogada vencedora");
+            insereLog(row, column, playerName, "jogada vencedora");
+            if (write(fd, "\r\n\r\n", 4) != 4) perror("escrita buf1");
             exit(0);
         }
     }
