@@ -13,7 +13,7 @@ typedef struct Message
   int id;
   int column;
   int row;
-  char *playername;
+  char playerName[30];
 } StructMessage;
 
 const char *NOME_FILA = "/fila_jogadas";
@@ -26,18 +26,50 @@ int row = 0;
 StructMessage message;
 mqd_t queue;
 
-void sig_handler(int signo){
-    
+void tratador(int signum){
+    printf("\nSinal %d capturado!\n", signum);
 }
 
 int main()
 {
+	struct sigaction sa;
+	memset(&sa, 0, sizeof(sa));
+
+	sa.sa_handler = &tratador;
+
+	if(sigaction(SIGUSR1, &sa, NULL) != 0){
+		perror("Falha ao instalar tratador de sinal SIGUSR1");
+		exit(-1);
+	}
+	if(sigaction(SIGUSR2, &sa, NULL) != 0){
+		perror("Falha ao instalar tratador de sinal SIGUSR1");
+		exit(-1);
+	}
+	if(sigaction(SIGCONT, &sa, NULL) != 0){
+		perror("Falha ao instalar tratador de sinal SIGCONT");
+		exit(-1);
+	}
+	if(sigaction(SIGTERM, &sa, NULL) != 0){
+		perror("Falha ao instalar tratador de sinal SIGTERM");
+		exit(-1);
+	}
+	if(sigaction(SIGINT, &sa, NULL) != 0){
+		perror("Falha ao instalar tratador de sinal SIGINT");
+		exit(-1);
+	}
+	if(sigaction(SIGTSTP, &sa, NULL) != 0){
+		perror("Falha ao instalar tratador de sinal SIGTSTP");
+		exit(-1);
+	}
   queue = mq_open(NOME_FILA, O_WRONLY, NULL);
   if (queue == (mqd_t)-1)
   {
     perror("mq_open");
     exit(2);
   }
+
+  printf("Escolha seu nome: ");
+  scanf("%s", &(message.playerName));
 
   askColumnAndRow();
 

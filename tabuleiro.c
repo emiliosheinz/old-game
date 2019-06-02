@@ -17,6 +17,7 @@ typedef struct Message
     int id;
     int column;
     int row;
+    char playerName[30];
 } StructMessage;
 
 ssize_t get_msg_buffer_size(mqd_t queue);
@@ -35,12 +36,42 @@ int fd;
 int jogadores[2];
 int ultimoAJogar;
 
-void sig_handler(int signo){
-    
+void tratador(int signum){
+    printf("Sinal %d capturado!\n", signum);
 }
 
 int main()
 {
+	struct sigaction sa;
+	memset(&sa, 0, sizeof(sa));
+
+	sa.sa_handler = &tratador;
+
+	if(sigaction(SIGUSR1, &sa, NULL) != 0){
+		perror("Falha ao instalar tratador de sinal SIGUSR1");
+		exit(-1);
+	}
+	if(sigaction(SIGUSR2, &sa, NULL) != 0){
+		perror("Falha ao instalar tratador de sinal SIGUSR1");
+		exit(-1);
+	}
+	if(sigaction(SIGCONT, &sa, NULL) != 0){
+		perror("Falha ao instalar tratador de sinal SIGCONT");
+		exit(-1);
+	}
+	if(sigaction(SIGTERM, &sa, NULL) != 0){
+		perror("Falha ao instalar tratador de sinal SIGTERM");
+		exit(-1);
+	}
+	if(sigaction(SIGINT, &sa, NULL) != 0){
+		perror("Falha ao instalar tratador de sinal SIGINT");
+		exit(-1);
+	}
+	if(sigaction(SIGTSTP, &sa, NULL) != 0){
+		perror("Falha ao instalar tratador de sinal SIGTSTP");
+		exit(-1);
+	}
+
     printf("PID: %d\n", getpid());
     exibeTabuleiro();
 
@@ -102,13 +133,13 @@ int addJogador(int playerId){
 	}
 }
 
-void insereLog(int row, int column, int playerdId, char *status){
+void insereLog(int row, int column, int playerId, char *status){
     time_t t = time(NULL);
     struct tm tm = *localtime(&t);
 
     char log[29 + strlen(status)];
 
-    snprintf(log, sizeof(log), "%d-%d-%d %d:%d:%d;%d;%d %d;%s\r\n", tm.tm_mday, tm.tm_mon, tm.tm_year, tm.tm_hour, tm.tm_min, tm.tm_sec, playerdId, row + 1, column + 1, status);
+    snprintf(log, sizeof(log), "%d-%d-%d %d:%d:%d;%d;%d %d;%s\r\n", tm.tm_mday, tm.tm_mon, tm.tm_year, tm.tm_hour, tm.tm_min, tm.tm_sec, playerId, row + 1, column + 1, status);
 
     lseek(fd, 0, SEEK_END);
 
@@ -120,6 +151,8 @@ void insereJogada(StructMessage *message)
     int row = message->row;
     int column = message->column;
     int playerId = message->id;
+    char playerName[strlen(message->playerName)];
+    sprintf(playerName, "%s", message->playerName);
 
 	if (addJogador(playerId) == -1){
 		printf("Você não pode participar dessa partida!\n");
