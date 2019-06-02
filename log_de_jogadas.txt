@@ -1,8 +1,12 @@
-Logs do tabuleiro com PID 3310:
-2-6-2019 14:23:4;Heinz;2 2;jogada válida
-2-6-2019 14:23:9;Rafael;3 3;jogada válida
-2-6-2019 14:23:15;Heinz;2 1;jogada válida2-6-2019 14:23:20;Rafael;3 2;jogada válida2-6-2019 14:23:25;Heinz;2 3;jogada válida2-6-2019 14:23:25;Heinz;2 3;jogada vencedora
 
-Logs do tabuleiro com PID 3333:
-2-6-2019 14:24:6;Heinz;2 2;jogada válida
-2-6-2019 14:24:12;Rafael;2 3;jogada válida2-6-2019 14:24:15;Heinz;3 2;jogada válida2-6-2019 14:24:18;Rafael;3 3;jogada válida
+
+Logs do tabuleiro com PID 3640:
+2-6-2019 14:36:59;Rafael;1 1;jogada válida
+
+Logs do tabuleiro com PID 3645:
+2-6-2019 14:37:8;Rafael;1 1;jogada válida
+2-6-2019 14:37:15;Heinz;2 3;jogada válida2-6-2019 14:37:19;Rafael;1 2;jogada válida2-6-2019 14:37:22;Heinz;2 2;jogada válida2-6-2019 14:37:29;Rafael;1 3;jogada válida2-6-2019 14:37:29;Rafael;1 3;jogada vencedora
+
+Logs do tabuleiro com PID 3653:
+2-6-2019 14:37:52;Heinz;1 1;jogada válida2-6-2019 14:38:7;Rafael;2 2;jogada válida
+2-6-2019 14:38:10;Heinz;2 1;jogada válida2-6-2019 14:38:13;Rafael;3 3;jogada válida2-6-2019 14:38:18;Heinz;3 1;jogada válida2-6-2019 14:38:18;Heinz;3 1;jogada vencedora

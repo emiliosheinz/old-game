@@ -27,7 +27,7 @@ int checaColuna();
 int checaDiagonal();
 int checaLinha();
 int verificaEmpate();
-int verificaFimDoJogo();
+int verificaFimDoJogo(char *playerName);
 int addJogador(int playerId);
 
 int turno = 1;
@@ -72,7 +72,7 @@ int main()
 		exit(-1);
 	}
 
-    printf("PID: %d\n", getpid());
+    printf("Tableiro de PID %d\n", getpid());
     exibeTabuleiro();
 
     mqd_t queue;
@@ -86,6 +86,7 @@ int main()
     lseek(fd, 0, SEEK_END);
     char firstLog[33];
     sprintf(firstLog, "Logs do tabuleiro com PID %d:\n\r", getpid());
+    if (write(fd, "\r\n\r\n", 4) != 4) perror("escrita buf1");
     if (write(fd, firstLog, 33) != 33) perror("escrita buf1");
 
     queue = mq_open(NOME_FILA, O_RDONLY | O_CREAT, 0770, NULL);
@@ -176,9 +177,8 @@ void insereJogada(StructMessage *message)
         turno++;
         exibeTabuleiro();
 
-        if(verificaFimDoJogo() == 1){
+        if(verificaFimDoJogo(playerName) == 1){
             insereLog(row, column, playerName, "jogada vencedora");
-            if (write(fd, "\r\n\r\n", 4) != 4) perror("escrita buf1");
             exit(0);
         }
     }
@@ -197,21 +197,21 @@ ssize_t get_msg_buffer_size(mqd_t queue)
     exit(3);
 }
 
-int verificaFimDoJogo()
+int verificaFimDoJogo(char *playerName)
 {
     if (checaLinha() == 3 || checaColuna() == 3 || checaDiagonal() == 3)
     {
-        printf("Jogador 2 venceu\n");
+        printf("Jogador %s venceu!!!\nPara jogar novamente inicie um novo tabuleiro.\n", playerName);
         return 1;
     }
     else if (checaLinha() == -3 || checaColuna() == -3 || checaDiagonal() == -3)
     {
-        printf("Jogador 1 venceu\n");
+        printf("Jogador %s venceu!!!\nPara jogar novamente inicie um novo tabuleiro.\n", playerName);
         return 1;
     }
     else if (verificaEmpate() == 1)
     {
-        printf("O jogo empatou\n");
+        printf("O jogo empatou!!!\nPara jogar novamente inicie um novo tabuleiro.\n");
         return 1;
     }
 
