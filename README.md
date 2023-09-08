@@ -6,5 +6,5 @@ Jogo da velha developed with C using message queues. This was a homework develop
 - Message queues
 
 # :man: Contributors
-- @emilioheinz
-- @fumegalli
+- [@emiliosheinz](https://github.com/emiliosheinz)
+- [@fumegalli](https://github.com/fumegalli)
